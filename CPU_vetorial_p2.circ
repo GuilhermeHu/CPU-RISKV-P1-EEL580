@@ -1199,7 +1199,7 @@ ENTITY EXMEM IS
     clk                : IN  std_logic;                     -- Sinal de clock
     ALUresult_in       : IN  std_logic_vector(31 DOWNTO 0); -- Resultado da ALU de entrada
     ALUzero_in         : IN  std_logic;                     -- Sinal indicando se a saída da ALU é zero de entrada
-    ALUoperation_in    : IN  std_logic_vector(31 DOWNTO 0); -- Saída da ALU de entrada
+    ALUresult_in    : IN  std_logic_vector(31 DOWNTO 0); -- Saída da ALU de entrada
     read2_in           : IN  std_logic_vector(31 DOWNTO 0); -- Registrador de leitura 2 de entrada
     WB_address_in      : IN  std_logic_vector(4 downto 0);  -- Endereço do registrador de escrita de volta de entrada
     WB_in              : IN  std_logic_vector(2 downto 0);  -- Controle do estágio de escrita de volta (WB) de entrada
@@ -1208,7 +1208,7 @@ ENTITY EXMEM IS
 
     PC_out             : OUT std_logic_vector(31 DOWNTO 0); -- PC de saída (Program Counter)
     ALUzero_out        : OUT std_logic;                     -- Sinal indicando se a saída da ALU é zero de saída
-    ALUoperation_out   : OUT std_logic_vector(31 DOWNTO 0); -- Saída da ALU de saída
+    ALUresult_out   : OUT std_logic_vector(31 DOWNTO 0); -- Saída da ALU de saída
     read2_out          : OUT std_logic_vector(31 DOWNTO 0); -- Registrador de leitura 2 de saída
     WB_address_out     : OUT std_logic_vector(4 downto 0);  -- Endereço do registrador de escrita de volta de saída
     WB_out             : OUT std_logic_vector(2 downto 0);  -- Controle do estágio de escrita de volta (WB) de saída
@@ -1227,9 +1227,9 @@ BEGIN
 	BEGIN
 		IF (rising_edge(clk)) THEN
 			-- No pulso de subida do clock, os dados de entrada são armazenados no registrador exmem_sig
-			exmem_sig(31 DOWNTO 0)   &lt;= ALUresult_in;
+			exmem_sig(31 DOWNTO 0)   &lt;= sum_address_in;
 			exmem_sig(32)  &lt;= ALUzero_in;
-			exmem_sig(64 DOWNTO 33)  &lt;= ALUoperation_in;
+			exmem_sig(64 DOWNTO 33)  &lt;= ALUresult_in;
 			exmem_sig(96 DOWNTO 65) &lt;= read2_in;
 			exmem_sig(101 DOWNTO 97) &lt;= WB_address_in;
 			exmem_sig(104 DOWNTO 102) &lt;= WB_in;
@@ -1247,9 +1247,9 @@ BEGIN
 			end if; 
 
 			if (exmem_sig(64 DOWNTO 33) = "UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU") then
-				ALUoperation_out &lt;= "00000000000000000000000000000000";
+				ALUresult_out &lt;= "00000000000000000000000000000000";
 			else
-				ALUoperation_out &lt;= exmem_sig(64 DOWNTO 33);
+				ALUresult_out &lt;= exmem_sig(64 DOWNTO 33);
 			end if;
 			
 			read2_out &lt;= exmem_sig(96 DOWNTO 65);
@@ -1280,14 +1280,14 @@ ENTITY MEMWB IS
   PORT (
     clk                 : IN  std_logic;                     -- Sinal de clock
     mem_read_in         : IN  std_logic_vector(31 DOWNTO 0); -- Dado lido da memória de entrada
-    ALUoperation_in     : IN  std_logic_vector(31 DOWNTO 0); -- Saída da ALU de entrada
+    ALUresult_in     : IN  std_logic_vector(31 DOWNTO 0); -- Saída da ALU de entrada
     WB_address_in       : IN  std_logic_vector(4 downto 0);  -- Endereço do registrador de escrita de volta de entrada
     WB_in               : IN  std_logic_vector(2 downto 0);  -- Controle do estágio de escrita de volta (WB) de entrada
     PC_plus4_in         : IN  std_logic_vector(31 downto 0); -- PC + 4 de entrada
     PC_plusAddress_in   : IN  std_logic_vector(31 downto 0); -- PC + Instrução de 32 bits de entrada
 
     mem_read_out        : OUT std_logic_vector(31 DOWNTO 0); -- Dado lido da memória de saída
-    ALUoperation_out    : OUT std_logic_vector(31 DOWNTO 0); -- Saída da ALU de saída
+    ALUresult_out    : OUT std_logic_vector(31 DOWNTO 0); -- Saída da ALU de saída
     WB_address_out      : OUT std_logic_vector(4 downto 0);  -- Endereço do registrador de escrita de volta de saída
     WB_out              : OUT std_logic_vector(2 downto 0);  -- Controle do estágio de escrita de volta (WB) de saída
     PC_plus4_out        : OUT std_logic_vector(31 downto 0); -- PC + 4 de saída
@@ -1306,7 +1306,7 @@ BEGIN
 		IF (rising_edge(clk)) THEN
 			-- No pulso de subida do clock, os dados de entrada são armazenados no registrador memwb_sig
 			memwb_sig(31 DOWNTO 0)   &lt;= mem_read_in;
-			memwb_sig(63 DOWNTO 32)  &lt;= ALUoperation_in;
+			memwb_sig(63 DOWNTO 32)  &lt;= ALUresult_in;
 			memwb_sig(68 DOWNTO 64)  &lt;= WB_address_in;
 			memwb_sig(71 DOWNTO 69)  &lt;= WB_in;
 			memwb_sig(103 downto 72) &lt;= PC_plus4_in;
@@ -1316,7 +1316,7 @@ BEGIN
 		IF (falling_edge(clk)) THEN
 			-- No pulso de descida do clock, os dados armazenados no registrador memwb_sig são disponibilizados nas saídas
 			mem_read_out    &lt;=  memwb_sig(31 DOWNTO 0);
-			ALUoperation_out  &lt;=  memwb_sig(63 DOWNTO 32);
+			ALUresult_out  &lt;=  memwb_sig(63 DOWNTO 32);
 			WB_address_out &lt;= memwb_sig(68 DOWNTO 64);
 			WB_out  &lt;= memwb_sig(71 DOWNTO 69);
 			PC_plus4_out &lt;= memwb_sig(103 downto 72);
