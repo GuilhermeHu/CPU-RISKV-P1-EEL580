@@ -1107,16 +1107,16 @@ use ieee.numeric_std.all;
 
 entity register_file is
   port(
-    regA_data        : out std_logic_vector(31 downto 0);    -- Saída A do registrador
-    regB_data        : out std_logic_vector(31 downto 0);    -- Saída B do registrador
-    input       : in  std_logic_vector(31 downto 0);    -- Entrada de dado para escrita no registrador
-    regManualSelector: in  std_logic_vector(4 downto 0);     -- Seleção manual de um registrador de saída
-    RegManual_data: out std_logic_vector(31 downto 0);    -- Saída do registrador selecionado manualmente
-    writeEnable : in  std_logic;                        -- Sinal de habilitação de escrita no registrador
-    regA_selector     : in  std_logic_vector(4 downto 0);     -- Seleção do registrador A para leitura
-    regB_selector     : in  std_logic_vector(4 downto 0);     -- Seleção do registrador B para leitura
-    writeRegSel : in  std_logic_vector(4 downto 0);     -- Seleção do registrador para escrita
-    clk         : in  std_logic                        -- Sinal de clock
+    regA_data           : out std_logic_vector(31 downto 0);    -- Saída A do registrador
+    regB_data           : out std_logic_vector(31 downto 0);    -- Saída B do registrador
+    input               : in  std_logic_vector(31 downto 0);    -- Entrada de dado para escrita no registrador
+    regManual_selector  : in  std_logic_vector(4 downto 0);     -- Seleção manual de um registrador de saída
+    RegManual_data      : out std_logic_vector(31 downto 0);    -- Saída do registrador selecionado manualmente
+    writeEnable         : in  std_logic;                        -- Sinal de habilitação de escrita no registrador
+    regA_selector       : in  std_logic_vector(4 downto 0);     -- Seleção do registrador A para leitura
+    regB_selector       : in  std_logic_vector(4 downto 0);     -- Seleção do registrador B para leitura
+    writeReg_selector   : in  std_logic_vector(4 downto 0);     -- Seleção do registrador para escrita
+    clk                 : in  std_logic                        -- Sinal de clock
     );
 end register_file;
 
@@ -1154,11 +1154,11 @@ begin
       -- Write and bypass
       -- Escrita e bypass
       if writeEnable = '1' then
-        registers(to_integer(unsigned(writeRegSel))) &lt;= input;  -- Escreve o valor da entrada no registrador selecionado
-        if regA_selector = writeRegSel then  -- Bypass para leitura A
+        registers(to_integer(unsigned(writeReg_selector))) &lt;= input;  -- Escreve o valor da entrada no registrador selecionado
+        if regA_selector = writeReg_selector then  -- Bypass para leitura A
           regA_data &lt;= input;  -- Se o registrador A é o mesmo selecionado para escrita, a saída A recebe o valor da entrada
         end if;
-        if regB_selector = writeRegSel then  -- Bypass para leitura B
+        if regB_selector = writeReg_selector then  -- Bypass para leitura B
           regB_data &lt;= input;  -- Se o registrador B é o mesmo selecionado para escrita, a saída B recebe o valor da entrada
         end if;
       end if;
@@ -1166,8 +1166,8 @@ begin
   end process;
 
   -- seleção manual
-  -- O valor de saída RegManual_data recebe o valor do registrador selecionado manualmente (regManualSelector)
-  RegManual_data &lt;= registers(to_integer(unsigned(regManualSelector)));
+  -- O valor de saída RegManual_data recebe o valor do registrador selecionado manualmente (regManual_selector)
+  RegManual_data &lt;= registers(to_integer(unsigned(regManual_selector)));
   
 end TypeArchitecture;
 </vhdl>
@@ -1296,24 +1296,24 @@ USE ieee.std_logic_1164.all;
 
 ENTITY EXMEM IS
   PORT (
-    clk            : IN  std_logic;                    -- Entrada do sinal de clock
-    ALUresult_in           : IN  std_logic_vector(31 DOWNTO 0); -- Entrada do resultado da ALU
-    ALUzero_in        : IN  std_logic;                    -- Entrada do sinal de zero da ALU
-    ALUoperation_in        : IN  std_logic_vector(31 DOWNTO 0);  -- Entrada da operação da ALU
-    read2_in       : IN  std_logic_vector(31 DOWNTO 0);  -- Entrada do valor lido do registrador 2
-    WB_address_in       : IN  std_logic_vector(4 downto 0);  -- Entrada do endereço do registrador de destino para escrita
-    WB_in		    : IN  std_logic_vector(2 downto 0);  -- Entrada da fonte de escrita no registrador de destino
-    Memory_in 		    : IN  std_logic_vector(5 downto 0);  -- Entrada do sinal de controle de escrita na memória de dados
-    PC_plus4_in	    : IN std_logic_vector(31 downto 0);  -- Entrada do valor do PC mais 4 (próxima instrução)
+    clk                    : IN  std_logic;                    -- Entrada do sinal de clock
+    Sum_address_in           : IN  std_logic_vector(31 DOWNTO 0); -- Entrada do resultado da ALU
+    ALUzero_in             : IN  std_logic;                    -- Entrada do sinal de zero da ALU
+    ALUresult_in        : IN  std_logic_vector(31 DOWNTO 0);  -- Entrada da operação da ALU
+    read2_in               : IN  std_logic_vector(31 DOWNTO 0);  -- Entrada do valor lido do registrador 2
+    WB_address_in          : IN  std_logic_vector(4 downto 0);  -- Entrada do endereço do registrador de destino para escrita
+    WB_in		               : IN  std_logic_vector(2 downto 0);  -- Entrada da fonte de escrita no registrador de destino
+    Memory_in 		         : IN  std_logic_vector(5 downto 0);  -- Entrada do sinal de controle de escrita na memória de dados
+    PC_plus4_in	           : IN std_logic_vector(31 downto 0);  -- Entrada do valor do PC mais 4 (próxima instrução)
     
-    PC_out         : OUT std_logic_vector(31 DOWNTO 0); -- Saída do valor atual do PC (contador de programa)
-    ALUzero_out	    : OUT std_logic;                    -- Saída do sinal de zero da ALU
-    ALUoperation_out       : OUT std_logic_vector(31 DOWNTO 0);  -- Saída do resultado da ALU
-    read2_out      : OUT std_logic_vector(31 DOWNTO 0); -- Saída do valor lido do registrador 2
-    WB_address_out       : OUT std_logic_vector(4 downto 0);  -- Saída do endereço do registrador de destino para escrita
-    WB_out		    : OUT std_logic_vector(2 downto 0);  -- Saída da fonte de escrita no registrador de destino
-    Memory_out 		    : OUT std_logic_vector(5 downto 0);  -- Saída do sinal de controle de escrita na memória de dados
-    PC_plus4_out	    : OUT std_logic_vector(31 downto 0)  -- Saída do valor do PC mais 4 (próxima instrução)
+    PC_out                 : OUT std_logic_vector(31 DOWNTO 0); -- Saída do valor atual do PC (contador de programa)
+    ALUzero_out	           : OUT std_logic;                    -- Saída do sinal de zero da ALU
+    ALUresult_out       : OUT std_logic_vector(31 DOWNTO 0);  -- Saída do resultado da ALU
+    read2_out              : OUT std_logic_vector(31 DOWNTO 0); -- Saída do valor lido do registrador 2
+    WB_address_out         : OUT std_logic_vector(4 downto 0);  -- Saída do endereço do registrador de destino para escrita
+    WB_out		             : OUT std_logic_vector(2 downto 0);  -- Saída da fonte de escrita no registrador de destino
+    Memory_out 		         : OUT std_logic_vector(5 downto 0);  -- Saída do sinal de controle de escrita na memória de dados
+    PC_plus4_out	         : OUT std_logic_vector(31 downto 0)  -- Saída do valor do PC mais 4 (próxima instrução)
     );
 END EXMEM;
 
@@ -1327,9 +1327,9 @@ BEGIN
 	PROCESS (clk)
 	BEGIN
 		IF (rising_edge(clk)) THEN                    -- Detecta a borda de subida do sinal de clock
-			exmem_sig(31 DOWNTO 0)   &lt;= ALUresult_in;          -- Armazena o resultado da ALU
+			exmem_sig(31 DOWNTO 0)   &lt;= Sum_address_in;          -- Armazena o resultado da ALU
 			exmem_sig(32)  &lt;= ALUzero_in;                   -- Armazena o sinal de zero da ALU
-			exmem_sig(64 DOWNTO 33)  &lt;= ALUoperation_in;          -- Armazena a operação da ALU
+			exmem_sig(64 DOWNTO 33)  &lt;= ALUresult_in;          -- Armazena a operação da ALU
 			exmem_sig(96 DOWNTO 65) &lt;= read2_in;         -- Armazena o valor lido do registrador 2
 			exmem_sig(101 DOWNTO 97) &lt;= wbAddIn;        -- Armazena o endereço do registrador de destino para escrita
 			exmem_sig(104 DOWNTO 102) &lt;= WB_in;          -- Armazena a fonte de escrita no registrador de destino
@@ -1339,7 +1339,7 @@ BEGIN
 		IF (falling_edge(clk)) THEN                  -- Detecta a borda de descida do sinal de clock
 			PC_out    &lt;=  exmem_sig(31 DOWNTO 0);       -- Na borda de descida, coloca na saída o valor do PC atual
 			ALUzero_out  &lt;=  exmem_sig(32);                -- Coloca na saída o sinal de zero da ALU
-			ALUoperation_out   &lt;=  exmem_sig(64 DOWNTO 33);       -- Coloca na saída o resultado da ALU
+			ALUresult_out   &lt;=  exmem_sig(64 DOWNTO 33);       -- Coloca na saída o resultado da ALU
 			read2_out &lt;=  exmem_sig(96 DOWNTO 65);       -- Coloca na saída o valor lido do registrador 2
 			WB_address_out &lt;=  exmem_sig(101 DOWNTO 97);      -- Coloca na saída o endereço do registrador de destino para escrita
 			WB_out    &lt;=  exmem_sig(104 DOWNTO 102);     -- Coloca na saída a fonte de escrita no registrador de destino
@@ -1358,14 +1358,14 @@ ENTITY MEMWB IS
   PORT (
     clk            : IN  std_logic;                    -- Entrada do sinal de clock
     mem_read_in         : IN  std_logic_vector(31 DOWNTO 0); -- Entrada do valor lido da memória ou resultado da ALU
-    ALUoperation_in          : IN  std_logic_vector(31 DOWNTO 0); -- Entrada do resultado da operação da ALU
+    ALUresult_in          : IN  std_logic_vector(31 DOWNTO 0); -- Entrada do resultado da operação da ALU
     WB_address_in       : IN  std_logic_vector(4 downto 0);  -- Entrada do endereço do registrador de destino para escrita
     WB_in		    : IN  std_logic_vector(2 downto 0);  -- Entrada da fonte de escrita no registrador de destino
     PC_plus4_in	    : IN std_logic_vector(31 downto 0); -- Entrada do valor do PC mais 4 (próxima instrução)
     PC_plusAddress_in	    : IN std_logic_vector(31 downto 0); -- Entrada do valor do PC mais I (endereço de retorno para chamadas de função)
                         
     mem_read_out        : OUT std_logic_vector(31 DOWNTO 0); -- Saída do valor lido da memória ou resultado da ALU
-    ALUoperation_out	        : OUT std_logic_vector(31 DOWNTO 0); -- Saída do resultado da operação da ALU
+    ALUresult_out	        : OUT std_logic_vector(31 DOWNTO 0); -- Saída do resultado da operação da ALU
     WB_address_out       : OUT std_logic_vector(4 downto 0);  -- Saída do endereço do registrador de destino para escrita
     WB_out		    : OUT std_logic_vector(2 downto 0);  -- Saída da fonte de escrita no registrador de destino
     PC_plus4_out       : OUT std_logic_vector(31 downto 0); -- Saída do valor do PC mais 4 (próxima instrução)
@@ -1383,7 +1383,7 @@ BEGIN
 	BEGIN
 		IF (rising_edge(clk)) THEN                       -- Detecta a borda de subida do sinal de clock
 			memwb_sig(31 DOWNTO 0)   &lt;= mem_read_in;            -- Armazena o valor lido da memória ou resultado da ALU
-			memwb_sig(63 DOWNTO 32)  &lt;= ALUoperation_in;             -- Armazena o resultado da operação da ALU
+			memwb_sig(63 DOWNTO 32)  &lt;= ALUresult_in;             -- Armazena o resultado da operação da ALU
 			memwb_sig(68 DOWNTO 64)  &lt;= wbAddIn;           -- Armazena o endereço do registrador de destino para escrita
 			memwb_sig(71 DOWNTO 69)  &lt;= WB_in;              -- Armazena a fonte de escrita no registrador de destino
 			memwb_sig(103 downto 72) &lt;= PC_plus4_in;           -- Armazena o valor do PC mais 4 (próxima instrução)
@@ -1392,7 +1392,7 @@ BEGIN
 		END IF;
 		IF (falling_edge(clk)) THEN                      -- Detecta a borda de descida do sinal de clock
 			readOut    &lt;=  memwb_sig(31 DOWNTO 0);         -- Na borda de descida, coloca na saída o valor lido da memória ou resultado da ALU
-			ALUoperation_out     &lt;=  memwb_sig(63 DOWNTO 32);        -- Coloca na saída o resultado da operação da ALU
+			ALUresult_out     &lt;=  memwb_sig(63 DOWNTO 32);        -- Coloca na saída o resultado da operação da ALU
 			WB_address_out   &lt;=  memwb_sig(68 DOWNTO 64);        -- Coloca na saída o endereço do registrador de destino para escrita
 			WB_out      &lt;=  memwb_sig(71 DOWNTO 69);        -- Coloca na saída a fonte de escrita no registrador de destino
 			PC_plus4_out   &lt;=  memwb_sig(103 downto 72);       -- Coloca na saída o valor do PC mais 4 (próxima instrução)
